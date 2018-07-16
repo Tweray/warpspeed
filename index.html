@@ -1,0 +1,196 @@
+<html>
+
+<head>
+    <title>WARP SPEED Calculator</title>
+    <style>
+        body {
+            font-size: 20px;
+        }
+
+        input {
+            font-size: 1em;
+        }
+
+        div {
+            width: 100%;
+            float: left;
+            margin-bottom: 0.5em;
+        }
+
+        h2 {
+            margin-bottom: 0;
+        }
+
+        .small {
+            font-size: 0.5em;
+        }
+
+        button{
+            font-size: 1em;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+
+        .outerpadding {
+            width: 90%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            float: none;
+        }
+
+        .display_console {
+            border: 1px solid grey;
+            background: #EEE;
+            min-height: 500px;
+            padding: 10px;
+            font-size: 0.8em;
+        }
+
+        .clickable {
+            cursor: pointer;
+        }
+
+        .tablerow>div {
+            width: 25%;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="outerpadding">
+        <h2>EVE warp time calculator</h2>
+        <div>function stole from
+            <a href="https://wiki.eveuniversity.org/Warp_time_calculation">eve university<a/>
+        </div>
+
+        <div>
+            <input id="WarpSpeed" type="number" placeholder="Warp Speed" /> au/s
+        </div>
+        <div>
+            <input id="ShipSpeed" type="number" placeholder="Ship Max Velocity" /> m/s
+        </div>
+        <div>
+            <input id="WarpDistance" type="number" placeholder="Warp Distance" /> 
+            <span class="clickable" id="SwitchDistanceUnit" data-current="0">au &#8634;<span>
+        </div>
+        <div>
+            <button id="Calculate">warp!</button>
+            <button id="ClearBoard">clear</button>
+        </div>
+
+        <div class="display_console">
+            <div class="tablerow">
+                <div>Warp Speed</div>
+                <div>Ship Speed</div>
+                <div>Distance</div>
+                <div>Warp Time</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        $(function () {
+            AU_IN_M = 149597870700
+
+            resultlineTemplate = `<div class="tablerow">
+                <div>[[1]]</div>
+                <div>[[2]]</div>
+                <div>[[3]]</div>
+                <div>[[4]]</div>
+            </div>`;
+
+            var toggleDistanceUnit = function (e) {
+                var current = $(e).attr("data-current")
+
+                if (current == 0) {
+                    $(e).html("km &#8634")
+                    $(e).attr("data-current", 1)
+                    return;
+                }
+
+                $(e).html("au &#8634")
+                $(e).attr("data-current", 0)
+            };
+
+            var calculateTimeInWarp = function (max_warp_speed, max_subwarp_speed, warp_dist) {
+
+                var k_accel = max_warp_speed
+                var k_decel = Math.min(max_warp_speed / 3, 2)
+
+                var warp_dropout_speed = Math.min(max_subwarp_speed / 2, 100)
+                var max_ms_warp_speed = max_warp_speed * AU_IN_M
+
+                var accel_dist = AU_IN_M
+                var decel_dist = max_ms_warp_speed / k_decel
+
+                var minimum_dist = accel_dist + decel_dist
+
+                var cruise_time = 0
+
+                if (minimum_dist > warp_dist) {
+                    max_ms_warp_speed = warp_dist * k_accel * k_decel / (k_accel + k_decel)
+                }
+                else {
+                    cruise_time = (warp_dist - minimum_dist) / max_ms_warp_speed
+                }
+
+                var accel_time = Math.log(max_ms_warp_speed / k_accel) / k_accel
+                var decel_time = Math.log(max_ms_warp_speed / warp_dropout_speed) / k_decel
+
+
+                var total_time = cruise_time + accel_time + decel_time
+                return total_time
+            };
+
+            $("#SwitchDistanceUnit").click(function () {
+                toggleDistanceUnit(this)
+            });
+
+            $("#ClearBoard").click(function(){
+                $(".display_console").html(`<div class="tablerow">
+                <div>Warp Speed</div>
+                <div>Ship Speed</div>
+                <div>Distance</div>
+                <div>Warp Time</div>
+            </div>`);
+            });
+
+            $("#Calculate").click(function (){
+
+                var distUnit = $("#SwitchDistanceUnit").attr("data-current")
+
+                var warpSpeed = $("#WarpSpeed").val();
+                var shipSpeed = $("#ShipSpeed").val();
+                var warpDist = $("#WarpDistance").val();
+
+                var distInM = warpDist * 1000;
+                var distUnitString = "km";
+
+                if(distUnit == 0){
+                    distInM =warpDist * AU_IN_M;
+                    distUnitString = "au";
+                }
+
+                var time = calculateTimeInWarp(warpSpeed, shipSpeed, distInM);
+
+                console.log(time);
+
+                var html = resultlineTemplate
+                    .replace("[[1]]", warpSpeed + "au/s")
+                    .replace("[[2]]", shipSpeed + "m/s")
+                    .replace("[[3]]", warpDist + distUnitString)
+                    .replace("[[4]]", time.toFixed(6) + "s")
+
+                console.log(html);
+
+                $(".display_console").append(html);
+            });
+
+        });
+    </script>
+</body>
+
+</html>
