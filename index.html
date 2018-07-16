@@ -25,7 +25,7 @@
             font-size: 0.5em;
         }
 
-        button{
+        button {
             font-size: 1em;
             cursor: pointer;
             margin-right: 20px;
@@ -62,7 +62,8 @@
     <div class="outerpadding">
         <h2>EVE warp time calculator</h2>
         <div>function stole from
-            <a href="https://wiki.eveuniversity.org/Warp_time_calculation">eve university<a/>
+            <a href="https://wiki.eveuniversity.org/Warp_time_calculation">eve university
+                <a/>
         </div>
 
         <div>
@@ -72,8 +73,9 @@
             <input id="ShipSpeed" type="number" placeholder="Ship Max Velocity" /> m/s
         </div>
         <div>
-            <input id="WarpDistance" type="number" placeholder="Warp Distance" /> 
-            <span class="clickable" id="SwitchDistanceUnit" data-current="0">au &#8634;<span>
+            <input id="WarpDistance" type="number" placeholder="Warp Distance" />
+            <span class="clickable" id="SwitchDistanceUnit" data-current="0">au &#8634;
+                <span>
         </div>
         <div>
             <button id="Calculate">warp!</button>
@@ -117,7 +119,7 @@
 
             var calculateTimeInWarp = function (max_warp_speed, max_subwarp_speed, warp_dist) {
 
-                var k_accel = max_warp_speed
+                var k_accel = parseFloat(max_warp_speed)
                 var k_decel = Math.min(max_warp_speed / 3, 2)
 
                 var warp_dropout_speed = Math.min(max_subwarp_speed / 2, 100)
@@ -149,7 +151,7 @@
                 toggleDistanceUnit(this)
             });
 
-            $("#ClearBoard").click(function(){
+            $("#ClearBoard").click(function () {
                 $(".display_console").html(`<div class="tablerow">
                 <div>Warp Speed</div>
                 <div>Ship Speed</div>
@@ -158,7 +160,7 @@
             </div>`);
             });
 
-            $("#Calculate").click(function (){
+            $("#Calculate").click(function () {
 
                 var distUnit = $("#SwitchDistanceUnit").attr("data-current")
 
@@ -169,22 +171,17 @@
                 var distInM = warpDist * 1000;
                 var distUnitString = "km";
 
-                if(distUnit == 0){
-                    distInM =warpDist * AU_IN_M;
+                if (distUnit == 0) {
+                    distInM = warpDist * AU_IN_M;
                     distUnitString = "au";
                 }
 
                 var time = calculateTimeInWarp(warpSpeed, shipSpeed, distInM);
-
-                console.log(time);
-
                 var html = resultlineTemplate
                     .replace("[[1]]", warpSpeed + "au/s")
                     .replace("[[2]]", shipSpeed + "m/s")
                     .replace("[[3]]", warpDist + distUnitString)
-                    .replace("[[4]]", time.toFixed(6) + "s")
-
-                console.log(html);
+                    .replace("[[4]]", time.toFixed(6) + "s");
 
                 $(".display_console").append(html);
             });
